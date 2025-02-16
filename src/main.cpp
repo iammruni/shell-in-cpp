@@ -119,6 +119,7 @@
       // cmd: ECHO
       if (command == "echo") {
         handleCmdEcho(arguments);
+        continue;
       }
 
       //cmd: TYPE
