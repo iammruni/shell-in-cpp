@@ -112,6 +112,14 @@ int main() {
       continue;
     }
 
+    // cmd: executable file
+    string checkpaths = findExecutable(command, PATH_DIRS);
+    if (!checkpaths.empty()) {
+      system(input.c_str());
+
+      continue;
+    }
+
     cout << input << ": command not found" << endl;
   }
 }
