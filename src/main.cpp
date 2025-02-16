@@ -24,9 +24,23 @@
     string currentArg;
     bool insideQuote = false;
     char quoteChar = '\0';
+    bool escapeNextChar = false; // Flag to check for backslash escape
 
     for (size_t i = 0; i < input.size(); ++i) {
         char currentChar = input[i];
+
+        // Handle backslash escape
+        if (escapeNextChar) {
+            currentArg.push_back(currentChar);
+            escapeNextChar = false; // Reset escape flag
+            continue;
+        }
+
+        // Handle backslash (escape character)
+        if (currentChar == '\\') {
+            escapeNextChar = true; // Set flag to escape next character
+            continue;
+        }
 
         // Toggle inside quote state on encountering a quote mark
         if ((currentChar == '"' || currentChar == '\'') && !insideQuote) {
