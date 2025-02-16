@@ -29,31 +29,47 @@
     for (size_t i = 0; i < input.size(); ++i) {
         char currentChar = input[i];
 
-        // Handle backslash escape
         if (escapeNextChar) {
+            // If we encounter an escape character, add the next character literally
             currentArg.push_back(currentChar);
-            escapeNextChar = false; // Reset escape flag
+            escapeNextChar = false;
             continue;
         }
 
-        // Handle backslash (escape character)
-        if (currentChar == '\\') {
-            escapeNextChar = true; // Set flag to escape next character
-            continue;
-        }
-
-        // Toggle inside quote state on encountering a quote mark
-        if ((currentChar == '"' || currentChar == '\'') && !insideQuote) {
+        // Handle the case for single quotes (preserve backslashes inside single quotes)
+        if (currentChar == '\'' && !insideQuote) {
             insideQuote = true;
-            quoteChar = currentChar; // Set the type of quote encountered
-            continue; // Skip the quote
-        } else if (currentChar == quoteChar && insideQuote) {
-            insideQuote = false; // Close the quote
-            continue; // Skip the closing quote
+            quoteChar = currentChar;
+            continue; // Skip the quote itself
+        } else if (currentChar == '\'' && insideQuote) {
+            insideQuote = false;
+            continue; // Skip the closing single quote
         }
 
-        // If inside a quote, append characters to current argument
-        if (insideQuote || currentChar != ' ') {
+        // Handle the case for double quotes (process escape sequences inside double quotes)
+        if (currentChar == '"' && !insideQuote) {
+            insideQuote = true;
+            quoteChar = currentChar;
+            continue; // Skip the quote itself
+        } else if (currentChar == '"' && insideQuote) {
+            insideQuote = false;
+            continue; // Skip the closing double quote
+        }
+
+        // If inside single quotes, add the character literally (including backslashes)
+        if (insideQuote && quoteChar == '\'') {
+            currentArg.push_back(currentChar);
+        } 
+        // If inside double quotes, process escape characters
+        else if (insideQuote && quoteChar == '"') {
+            if (currentChar == '\\') {
+                escapeNextChar = true; // Set flag to escape next character
+            } else {
+                currentArg.push_back(currentChar);
+            }
+        }
+        // If not inside any quote, handle the character normally
+        else if (currentChar != ' ') {
             currentArg.push_back(currentChar);
         }
 
@@ -71,6 +87,7 @@
 
     return arguments;
 }
+
 
   // F_OK only checks for existence of file.
   // access() returns 0 for file exists and -1 otherwise
