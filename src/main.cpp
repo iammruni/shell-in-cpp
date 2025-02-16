@@ -90,7 +90,7 @@
 
     // Uncomment this block to pass the first stage
     while(1){
-      cout << filesystem::current_path().c_str() << " $ ";
+      cout << "$ ";
 
       string input;
       getline(cin, input);
