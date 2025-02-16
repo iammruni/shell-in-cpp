@@ -62,10 +62,10 @@
             }
         }
         // If outside quotes, handle backslashes followed by space as literal space
-        else if (currentChar == '\\' && i + 1 < input.size() && input[i + 1] == ' ') {
+        else if (currentChar == '\\' && i + 1 < input.size() && (input[i + 1] == ' ' || input[i + 1] == '\'' || input[i + 1] == '"')) {
             // If a backslash followed by a space, add a literal space and skip the backslash
-            currentArg.push_back(' ');
-            i++; // Skip the space
+            currentArg.push_back(input[i + 1]);
+            i++; // Skip the next character
         }
         // If not inside any quotes, handle the character normally
         else if (currentChar != ' ') {
@@ -213,6 +213,7 @@
       // cmd: executable file
       string checkpaths = findExecutable(command, PATH_DIRS);
       if (!checkpaths.empty()) {
+        
         system(input.c_str());
         continue;
       }
