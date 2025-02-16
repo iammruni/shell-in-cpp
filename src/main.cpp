@@ -214,7 +214,7 @@
       string checkpaths = findExecutable(command, PATH_DIRS);
       if (!checkpaths.empty()) {
         
-        system((command + " " + arguments[0]).c_str());
+        system(("'" + command + "'" + " " + arguments[0]).c_str());
         continue;
       }
 
