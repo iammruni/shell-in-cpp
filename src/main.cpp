@@ -22,59 +22,52 @@
   vector<string> parseInputWithQuotes(const string& input) {
     vector<string> arguments;
     string currentArg;
-    bool insideQuote = false;
-    char quoteChar = '\0';
+    bool insideSingleQuote = false; // Whether we're inside single quotes
+    bool insideDoubleQuote = false; // Whether we're inside double quotes
     bool escapeNextChar = false; // Flag to check for backslash escape
 
     for (size_t i = 0; i < input.size(); ++i) {
         char currentChar = input[i];
 
         if (escapeNextChar) {
-            // If we encounter an escape character, add the next character literally
+            // If we're escaping the next character, add it literally
             currentArg.push_back(currentChar);
             escapeNextChar = false;
             continue;
         }
 
-        // Handle the case for single quotes (preserve backslashes inside single quotes)
-        if (currentChar == '\'' && !insideQuote) {
-            insideQuote = true;
-            quoteChar = currentChar;
+        // Handle the case for single quotes (preserve all characters literally inside single quotes)
+        if (currentChar == '\'' && !insideDoubleQuote) {
+            insideSingleQuote = !insideSingleQuote; // Toggle the inside single quote flag
             continue; // Skip the quote itself
-        } else if (currentChar == '\'' && insideQuote) {
-            insideQuote = false;
-            continue; // Skip the closing single quote
         }
 
         // Handle the case for double quotes (process escape sequences inside double quotes)
-        if (currentChar == '"' && !insideQuote) {
-            insideQuote = true;
-            quoteChar = currentChar;
+        if (currentChar == '"' && !insideSingleQuote) {
+            insideDoubleQuote = !insideDoubleQuote; // Toggle the inside double quote flag
             continue; // Skip the quote itself
-        } else if (currentChar == '"' && insideQuote) {
-            insideQuote = false;
-            continue; // Skip the closing double quote
         }
 
-        // If inside single quotes, add the character literally (including backslashes)
-        if (insideQuote && quoteChar == '\'') {
+        // If inside single quotes, add the character literally (including backslashes and quotes)
+        if (insideSingleQuote) {
             currentArg.push_back(currentChar);
-        } 
-        // If inside double quotes, process escape characters
-        else if (insideQuote && quoteChar == '"') {
+        }
+        // If inside double quotes, handle escape sequences
+        else if (insideDoubleQuote) {
             if (currentChar == '\\') {
-                escapeNextChar = true; // Set flag to escape next character
+                // If a backslash, escape the next character (including quotes and backslashes)
+                escapeNextChar = true;
             } else {
                 currentArg.push_back(currentChar);
             }
         }
-        // If not inside any quote, handle the character normally
+        // If not inside any quotes, handle the character normally
         else if (currentChar != ' ') {
             currentArg.push_back(currentChar);
         }
 
         // When encountering a space outside of quotes, push the argument to the vector
-        if (!insideQuote && currentChar == ' ' && !currentArg.empty()) {
+        if (!insideSingleQuote && !insideDoubleQuote && currentChar == ' ' && !currentArg.empty()) {
             arguments.push_back(currentArg);
             currentArg.clear();
         }
