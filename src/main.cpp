@@ -14,10 +14,6 @@ int main() {
     std::string input;
     std::getline(std::cin, input);
 
-    if (input=="exit 0"){
-      return 0;
-    }
-
     // Use stringstream to separate command and arguments
     std::stringstream ss(input);
     std::string command;
@@ -32,7 +28,14 @@ int main() {
       arguments.push_back(arg);
     }
 
-    // Handle the "echo" command
+    // cmd: EXIT
+    if (command == "exit") {
+      if (!arguments.empty() && arguments[0] == "0") {
+        return 0;
+      }
+    }
+    
+    // cmd: ECHO
     if (command == "echo") {
       // Print each argument with a space between them
       for (const auto& a : arguments) {
@@ -41,7 +44,6 @@ int main() {
       std::cout << std::endl;
       continue;
     }
-
 
     std::cout << input << ": command not found" << std::endl;
   }
