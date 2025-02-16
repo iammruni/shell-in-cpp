@@ -1,32 +1,46 @@
 #include <iostream>
 #include <vector>
 #include <sstream>
+using namespace std;
+
+vector<string> tokeniser() {
+
+}
+
 
 int main() {
-  // Flush after every std::cout / std:cerr
-  std::cout << std::unitbuf;
-  std::cerr << std::unitbuf;
+  // Flush after every cout / std:cerr
+  cout << unitbuf;
+  cerr << unitbuf;
 
   //Builtin commands
-  std::string builtincmds[3] = {"exit", "echo", "type"};
+  string builtincmds[3] = {"exit", "echo", "type"};
+  
+  // Handle PATH variable
+  const string PATH_ENV_NAME = "PATH";
+  string ENV_PATHS = getenv(PATH_ENV_NAME.c_str());
+  vector<string> PATH_DIRS;
+
+
+
 
   // Uncomment this block to pass the first stage
   while(1){
-    std::cout << "$ ";
+    cout << "$ ";
 
-    std::string input;
-    std::getline(std::cin, input);
+    string input;
+    getline(cin, input);
 
     // Use stringstream to separate command and arguments
-    std::stringstream ss(input);
-    std::string command;
-    std::vector<std::string> arguments;
+    stringstream ss(input);
+    string command;
+    vector<string> arguments;
 
     // Get the command (first word)
     ss >> command;
 
     // Get the arguments (remaining words)
-    std::string arg;
+    string arg;
     while (ss >> arg) {
       arguments.push_back(arg);
     }
@@ -42,9 +56,9 @@ int main() {
     if (command == "echo") {
       // Print each argument with a space between them
       for (const auto& a : arguments) {
-        std::cout << a << " ";
+        cout << a << " ";
       }
-      std::cout << std::endl;
+      cout << endl;
       continue;
     }
 
@@ -55,18 +69,18 @@ int main() {
         bool found = false;
         for (const auto& builtincmds: builtincmds) {
           if (arguments[0] == builtincmds) {
-            std::cout << arguments[0] << " is a shell builtin" << std::endl;
+            cout << arguments[0] << " is a shell builtin" << endl;
             found = true;
             break;
           }
         }
         if (!found) {
-          std::cout << arguments[0] << ": not found" << std::endl;
+          cout << arguments[0] << ": not found" << endl;
         }
       }
       continue;
     }
 
-    std::cout << input << ": command not found" << std::endl;
+    cout << input << ": command not found" << endl;
   }
 }
