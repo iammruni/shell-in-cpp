@@ -65,11 +65,14 @@
     }
   }
 
-  void handleCmdCD (const vector<string>& arguments) {
+  void handleCmdCD (vector<string>& arguments) {
     if (!arguments.empty()) {
+      if (arguments[0][0] == '~') {
+        arguments[0] = arguments[0].replace(0, 1, getenv("HOME"));
+      }
       if (chdir(arguments[0].c_str()) == -1) {
         perror(("cd: " + arguments[0]).c_str());
-      } 
+      }
     }
   }
 
