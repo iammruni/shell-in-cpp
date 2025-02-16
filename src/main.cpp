@@ -36,13 +36,50 @@
     return "";
   }
 
+  void handleCmdEcho (const vector<string>& args) {
+    // Print each argument with a space between them
+    for (const auto& a : args) {
+      cout << a << " ";
+    }
+    cout << endl;
+  }
+
+  void handleCmdType (const vector<string>& arguments, const vector<string>& PATH_DIRS, const vector<string>& builtincmds) {
+    if (!arguments.empty()) {
+      bool found = false;
+      for (const auto& builtincmds: builtincmds) {
+        if (arguments[0] == builtincmds) {
+          cout << arguments[0] << " is a shell builtin" << endl;
+          found = true;
+          break;
+        }
+      }
+      if (!found) {
+        string checkpaths = findExecutable(arguments[0], PATH_DIRS);
+        if (!checkpaths.empty()){
+          cout << arguments[0] << " is " << checkpaths << endl;
+        } else {
+          cout << arguments[0] << ": not found" << endl;
+        }
+      }
+    }
+  }
+
+  void handleCmdCD (const vector<string>& arguments) {
+    if (!arguments.empty()) {
+      if (chdir(arguments[0].c_str()) == -1) {
+        perror(("cd: " + arguments[0]).c_str());
+      } 
+    }
+  }
+
   int main() {
     // Flush after every cout / std:cerr
     cout << unitbuf;
     cerr << unitbuf;
 
     //Builtin commands
-    string builtincmds[4] = {"exit", "echo", "type", "pwd"};
+    vector<string> builtincmds = {"exit", "echo", "type", "pwd", "cd"};
     
     // Handle PATH variable
     const string PATH_ENV_NAME = "PATH";
@@ -53,7 +90,7 @@
 
     // Uncomment this block to pass the first stage
     while(1){
-      cout << "$ ";
+      cout << filesystem::current_path().c_str() << " $ ";
 
       string input;
       getline(cin, input);
@@ -81,35 +118,12 @@
       
       // cmd: ECHO
       if (command == "echo") {
-        // Print each argument with a space between them
-        for (const auto& a : arguments) {
-          cout << a << " ";
-        }
-        cout << endl;
-        continue;
+        handleCmdEcho(arguments);
       }
 
       //cmd: TYPE
       if (command == "type") {
-
-        if (!arguments.empty()) {
-          bool found = false;
-          for (const auto& builtincmds: builtincmds) {
-            if (arguments[0] == builtincmds) {
-              cout << arguments[0] << " is a shell builtin" << endl;
-              found = true;
-              break;
-            }
-          }
-          if (!found) {
-            string checkpaths = findExecutable(arguments[0], PATH_DIRS);
-            if (!checkpaths.empty()){
-              cout << arguments[0] << " is " << checkpaths << endl;
-            } else {
-              cout << arguments[0] << ": not found" << endl;
-            }
-          }
-        }
+        handleCmdType(arguments, PATH_DIRS, builtincmds);
         continue;
       }
 
@@ -119,11 +133,15 @@
         continue;
       }
 
+      //cmd: CD
+      if (command == "cd") {
+        handleCmdCD(arguments);
+        continue;
+      }
       // cmd: executable file
       string checkpaths = findExecutable(command, PATH_DIRS);
       if (!checkpaths.empty()) {
         system(input.c_str());
-
         continue;
       }
 
