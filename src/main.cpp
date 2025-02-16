@@ -87,6 +87,21 @@
     return arguments;
 }
 
+  string parseforCMD(string& input) {
+    char startswithquote = input.at(0);
+    string cmd = "";
+    if (startswithquote == '\"' || startswithquote == '\'') {
+      for (size_t i = 0; i < input.size(); i++) {
+        char currentChar = input[i];
+        if (currentChar != startswithquote){
+          cmd.push_back(currentChar);
+        } else {
+          return cmd;
+        }
+      }
+    }
+    return input;
+  }
 
   // F_OK only checks for existence of file.
   // access() returns 0 for file exists and -1 otherwise
@@ -211,9 +226,11 @@
         continue;
       }
       // cmd: executable file
+      if (command.starts_with("'") || command.starts_with("\"")) {
+        command = parseforCMD(input);
+      }
       string checkpaths = findExecutable(command, PATH_DIRS);
       if (!checkpaths.empty()) {
-        
         system(("'" + command + "'" + " " + arguments[0]).c_str());
         continue;
       }
