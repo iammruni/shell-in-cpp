@@ -8,7 +8,7 @@ int main() {
   std::cerr << std::unitbuf;
 
   //Builtin commands
-  std::string builtincmds[2] = {"exit", "echo"};
+  std::string builtincmds[3] = {"exit", "echo", "type"};
 
   // Uncomment this block to pass the first stage
   while(1){
