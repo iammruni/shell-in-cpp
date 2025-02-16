@@ -22,9 +22,9 @@
   vector<string> parseInputWithQuotes(const string& input) {
     vector<string> arguments;
     string currentArg;
-    bool insideSingleQuote = false; // Whether we're inside single quotes
-    bool insideDoubleQuote = false; // Whether we're inside double quotes
-    bool escapeNextChar = false; // Flag to check for backslash escape
+    bool insideSingleQuote = false;  // Whether we're inside single quotes
+    bool insideDoubleQuote = false;  // Whether we're inside double quotes
+    bool escapeNextChar = false;     // Flag to check for backslash escape
 
     for (size_t i = 0; i < input.size(); ++i) {
         char currentChar = input[i];
@@ -48,7 +48,7 @@
             continue; // Skip the quote itself
         }
 
-        // If inside single quotes, add the character literally (including backslashes and quotes)
+        // If inside single quotes, add the character literally (including backslashes and spaces)
         if (insideSingleQuote) {
             currentArg.push_back(currentChar);
         }
@@ -61,11 +61,17 @@
                 currentArg.push_back(currentChar);
             }
         }
+        // If outside quotes, handle backslashes followed by space as literal space
+        else if (currentChar == '\\' && i + 1 < input.size() && input[i + 1] == ' ') {
+            // If a backslash followed by a space, add a literal space and skip the backslash
+            currentArg.push_back(' ');
+            i++; // Skip the space
+        }
         // If not inside any quotes, handle the character normally
         else if (currentChar != ' ') {
             currentArg.push_back(currentChar);
         }
-
+        
         // When encountering a space outside of quotes, push the argument to the vector
         if (!insideSingleQuote && !insideDoubleQuote && currentChar == ' ' && !currentArg.empty()) {
             arguments.push_back(currentArg);
