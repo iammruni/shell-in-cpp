@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "*.toml": "toml",
-        "vector": "cpp"
+        "vector": "cpp",
+        "iostream": "cpp"
     }
 }

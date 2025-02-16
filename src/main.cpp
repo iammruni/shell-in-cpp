@@ -1,12 +1,39 @@
 #include <iostream>
 #include <vector>
 #include <sstream>
+#include <unistd.h>
 using namespace std;
 
-vector<string> tokeniser() {
+// s: string to be split; del: delimiter char
+vector<string> tokeniser(string s, char del) {
+  stringstream ss(s);
+  string word;
+  vector<string> tokens;
 
+  while (getline(ss, word, del)) {
+    tokens.push_back(word);
+  }
+
+  return tokens;
 }
 
+// F_OK only checks for existence of file.
+// access() returns 0 for file exists and -1 otherwise
+bool isExecutable(const string& path) {
+  return access(path.c_str(), F_OK) == 0;
+}
+
+string findExecutable(const string& cmd, const vector<string>& paths) {
+  for (const auto& dir: paths){
+    // Form a full path from the command passed
+    // Eg.: '/usr/bin' + '/' + 'ls'
+    string fullpath = dir + "/" + cmd;
+    if (isExecutable(fullpath)) {
+      return fullpath;
+    }
+  }
+  return "";
+}
 
 int main() {
   // Flush after every cout / std:cerr
@@ -21,8 +48,7 @@ int main() {
   string ENV_PATHS = getenv(PATH_ENV_NAME.c_str());
   vector<string> PATH_DIRS;
 
-
-
+  PATH_DIRS = tokeniser(ENV_PATHS, ':');
 
   // Uncomment this block to pass the first stage
   while(1){
@@ -75,7 +101,12 @@ int main() {
           }
         }
         if (!found) {
-          cout << arguments[0] << ": not found" << endl;
+          string checkpaths = findExecutable(arguments[0], PATH_DIRS);
+          if (!checkpaths.empty()){
+            cout << arguments[0] << " is " << checkpaths << endl;
+          } else {
+            cout << arguments[0] << ": not found" << endl;
+          }
         }
       }
       continue;
