@@ -18,6 +18,46 @@
     return tokens;
   }
 
+  // Function to split string into arguments while handling quotes
+  vector<string> parseInputWithQuotes(const string& input) {
+    vector<string> arguments;
+    string currentArg;
+    bool insideQuote = false;
+    char quoteChar = '\0';
+
+    for (size_t i = 0; i < input.size(); ++i) {
+        char currentChar = input[i];
+
+        // Toggle inside quote state on encountering a quote mark
+        if ((currentChar == '"' || currentChar == '\'') && !insideQuote) {
+            insideQuote = true;
+            quoteChar = currentChar; // Set the type of quote encountered
+            continue; // Skip the quote
+        } else if (currentChar == quoteChar && insideQuote) {
+            insideQuote = false; // Close the quote
+            continue; // Skip the closing quote
+        }
+
+        // If inside a quote, append characters to current argument
+        if (insideQuote || currentChar != ' ') {
+            currentArg.push_back(currentChar);
+        }
+
+        // When encountering a space outside of quotes, push the argument to the vector
+        if (!insideQuote && currentChar == ' ' && !currentArg.empty()) {
+            arguments.push_back(currentArg);
+            currentArg.clear();
+        }
+    }
+
+    // Add the last argument if it exists
+    if (!currentArg.empty()) {
+        arguments.push_back(currentArg);
+    }
+
+    return arguments;
+}
+
   // F_OK only checks for existence of file.
   // access() returns 0 for file exists and -1 otherwise
   bool isExecutable(const string& path) {
@@ -99,19 +139,17 @@
       getline(cin, input);
 
       // Use stringstream to separate command and arguments
-      stringstream ss(input);
       string command;
-      vector<string> arguments;
 
-      // Get the command (first word)
-      ss >> command;
+      // Parse the input with quoted arguments handled properly
+      vector<string> arguments = parseInputWithQuotes(input);
 
-      // Get the arguments (remaining words)
-      string arg;
-      while (ss >> arg) {
-        arguments.push_back(arg);
+      if (arguments.empty()) {
+          continue; // Empty input, continue the loop
       }
 
+      command = arguments[0];
+      arguments.erase(arguments.begin());
       // cmd: EXIT
       if (command == "exit") {
         if (!arguments.empty() && arguments[0] == "0") {

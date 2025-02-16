@@ -2,6 +2,7 @@
     "files.associations": {
         "*.toml": "toml",
         "vector": "cpp",
-        "iostream": "cpp"
+        "iostream": "cpp",
+        "string": "cpp"
     }
 }
