@@ -7,6 +7,9 @@ int main() {
   std::cout << std::unitbuf;
   std::cerr << std::unitbuf;
 
+  //Builtin commands
+  std::string builtincmds[2] = {"exit", "echo"};
+
   // Uncomment this block to pass the first stage
   while(1){
     std::cout << "$ ";
@@ -42,6 +45,25 @@ int main() {
         std::cout << a << " ";
       }
       std::cout << std::endl;
+      continue;
+    }
+
+    //cmd: TYPE
+    if (command == "type") {
+
+      if (!arguments.empty()) {
+        bool found = false;
+        for (const auto& builtincmds: builtincmds) {
+          if (arguments[0] == builtincmds) {
+            std::cout << arguments[0] << " is a shell builtin" << std::endl;
+            found = true;
+            break;
+          }
+        }
+        if (!found) {
+          std::cout << arguments[0] << ": not found" << std::endl;
+        }
+      }
       continue;
     }
 
