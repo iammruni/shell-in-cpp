@@ -68,7 +68,7 @@
             i++; // Skip the next character
         }
         // If not inside any quotes, handle the character normally
-        else if (currentChar != ' ') {
+        else if (currentChar != ' ' && currentChar != '\\') {
             currentArg.push_back(currentChar);
         }
         
