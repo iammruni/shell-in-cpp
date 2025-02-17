@@ -234,6 +234,15 @@
       }
       string checkpaths = findExecutable(command, PATH_DIRS);
       if (!checkpaths.empty()) {
+        // Bring args outside; easier to debug
+        vector<char*> execArgs;
+        execArgs.push_back(const_cast<char*>(command.c_str()));
+        for (const auto& arg : arguments) {
+            execArgs.push_back(const_cast<char*>(arg.c_str()));
+        }
+        execArgs.push_back(nullptr);
+        // Remove the first element
+        execArgs.erase(execArgs.begin());
         // Fork to create a new process
         pid_t pid = fork();
         if (pid == -1) {
@@ -242,13 +251,6 @@
             continue;
         }
         if (pid == 0) {
-            // In the child process, execute the command
-            vector<char*> execArgs;
-            execArgs.push_back(const_cast<char*>(command.c_str()));
-            for (const auto& arg : arguments) {
-                execArgs.push_back(const_cast<char*>(arg.c_str()));
-            }
-            execArgs.push_back(nullptr);
             // Execute the command with execvp
             execvp(command.c_str(), execArgs.data());
             // If execvp fails, print an error
