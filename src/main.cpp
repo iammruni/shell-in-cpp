@@ -88,21 +88,14 @@
 }
 
   string parseforCMD(string& input) {
-    char startswithquote = input.at(0);
-    string cmd = "";
-    if (startswithquote == '\"' || startswithquote == '\'') {
-      for (size_t i = 0; i < input.size(); i++) {
-        char currentChar = input[i];
-        if (currentChar != startswithquote) {
-          cmd.push_back(currentChar);
-        }
-        if (currentChar == startswithquote && i != 0) {
-          return cmd;
-        }
+    // Check for quotes and remove the enclosing quotes (either single or double)
+    if (input.front() == '"' || input.front() == '\'') {
+      char quote = input.front();
+      if (input.back() == quote) {
+          return input.substr(1, input.size() - 2);  // Remove the enclosing quotes
       }
-      return cmd;
-    }
-    return input;
+  }
+  return input;
   }
 
   // F_OK only checks for existence of file.
@@ -228,13 +221,14 @@
         continue;
       }
       // cmd: executable file
-      if (input.starts_with("'") || input.starts_with("\"")) {
-        command = parseforCMD(input);
-      }
+      command = parseforCMD(input);
       string checkpaths = findExecutable(command, PATH_DIRS);
+
       if (!checkpaths.empty()) {
-        system(("'" + command + "'" + " " + arguments[0]).c_str());
-        continue;
+          // Properly format the command with arguments, preserving quotes
+          string fullCommand = "'" + checkpaths + "' " + arguments[1];
+          system(fullCommand.c_str());
+          continue;
       }
 
       cout << input << ": command not found" << endl;
