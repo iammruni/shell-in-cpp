@@ -90,32 +90,29 @@
 string parseforCMD(string& input) {
   char startswithquote = input.at(0);
   string cmd = "";
-  bool escapeNextChar = false;  // Flag to handle backslashes
-
+  bool insideQuotes = false;    // Whether we're inside quotes
+  bool singleQuote = false;     // Whether we're inside single quotes (')
+  
+  // Ensure we are dealing with quoted input
   if (startswithquote == '\"' || startswithquote == '\'') {
       for (size_t i = 1; i < input.size(); ++i) {
           char currentChar = input[i];
 
-          // Handle backslashes (escape next character)
-          if (escapeNextChar) {
-              cmd.push_back(currentChar);
-              escapeNextChar = false;
-              continue;
-          }
-
-          // Handle backslash escaping
-          if (currentChar == '\\') {
-              escapeNextChar = true;
-              continue;
-          }
-
           // If we encounter the closing quote, stop parsing
-          if (currentChar == startswithquote) {
+          if ((currentChar == '\'' && !singleQuote) || (currentChar == '\"' && singleQuote)) {
               return cmd;
           }
 
-          // Otherwise, just add the character to the command
-          cmd.push_back(currentChar);
+          // If inside quotes (single or double), append the current character to the command
+          if (currentChar == '\'' || currentChar == '\"') {
+              insideQuotes = !insideQuotes;
+              singleQuote = (currentChar == '\'');
+          }
+
+          // Add the character to the command if it's inside quotes
+          if (insideQuotes) {
+              cmd.push_back(currentChar);
+          }
       }
       // In case we don't find the closing quote, return the cmd so far
       return cmd;
