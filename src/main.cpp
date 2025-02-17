@@ -87,40 +87,23 @@
     return arguments;
 }
 
-string parseforCMD(string& input) {
-  char startswithquote = input.at(0);
-  string cmd = "";
-  bool insideQuotes = false;    // Whether we're inside quotes
-  bool singleQuote = false;     // Whether we're inside single quotes (')
-  
-  // Ensure we are dealing with quoted input
-  if (startswithquote == '\"' || startswithquote == '\'') {
-      for (size_t i = 1; i < input.size(); ++i) {
-          char currentChar = input[i];
-
-          // If we encounter the closing quote, stop parsing
-          if ((currentChar == '\'' && !singleQuote) || (currentChar == '\"' && singleQuote)) {
-              return cmd;
-          }
-
-          // If inside quotes (single or double), append the current character to the command
-          if (currentChar == '\'' || currentChar == '\"') {
-              insideQuotes = !insideQuotes;
-              singleQuote = (currentChar == '\'');
-          }
-
-          // Add the character to the command if it's inside quotes
-          if (insideQuotes) {
-              cmd.push_back(currentChar);
-          }
+  string parseforCMD(string& input) {
+    char startswithquote = input.at(0);
+    string cmd = "";
+    if (startswithquote == '\"' || startswithquote == '\'') {
+      for (size_t i = 0; i < input.size(); i++) {
+        char currentChar = input[i];
+        if (currentChar != startswithquote) {
+          cmd.push_back(currentChar);
+        }
+        if (currentChar == startswithquote && i != 0) {
+          return cmd;
+        }
       }
-      // In case we don't find the closing quote, return the cmd so far
       return cmd;
+    }
+    return input;
   }
-  
-  // If no quotes are found, return the input as the command
-  return input;
-}
 
   // F_OK only checks for existence of file.
   // access() returns 0 for file exists and -1 otherwise
@@ -250,7 +233,30 @@ string parseforCMD(string& input) {
       }
       string checkpaths = findExecutable(command, PATH_DIRS);
       if (!checkpaths.empty()) {
-        system(("'" + command + "'" + " " + arguments[0]).c_str());
+        // Fork to create a new process
+        pid_t pid = fork();
+        if (pid == -1) {
+            // Fork failed, print an error
+            perror("fork failed");
+            continue;
+        }
+        if (pid == 0) {
+            // In the child process, execute the command
+            vector<char*> execArgs;
+            execArgs.push_back(const_cast<char*>(command.c_str()));
+            for (const auto& arg : arguments) {
+                execArgs.push_back(const_cast<char*>(arg.c_str()));
+            }
+            execArgs.push_back(nullptr);
+            // Execute the command with execvp
+            execvp(command.c_str(), execArgs.data());
+            // If execvp fails, print an error
+            perror("execvp failed");
+            return 1;
+        } else {
+            // In the parent process, wait for the child to finish
+            waitpid(pid, nullptr, 0);
+        }
         continue;
       }
 
