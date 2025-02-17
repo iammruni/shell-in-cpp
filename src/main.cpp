@@ -88,14 +88,19 @@
 }
 
   string parseforCMD(string& input) {
-    // Check for quotes and remove the enclosing quotes (either single or double)
-    if (input.front() == '"' || input.front() == '\'') {
-      char quote = input.front();
-      if (input.back() == quote) {
-          return input.substr(1, input.size() - 2);  // Remove the enclosing quotes
+    char startswithquote = input.at(0);
+    string cmd = "";
+    if (startswithquote == '\"' || startswithquote == '\'') {
+      for (size_t i = 0; i < input.size(); i++) {
+        char currentChar = input[i];
+        if (currentChar != startswithquote){
+          cmd.push_back(currentChar);
+        } else {
+          return cmd;
+        }
       }
-  }
-  return input;
+    }
+    return input;
   }
 
   // F_OK only checks for existence of file.
