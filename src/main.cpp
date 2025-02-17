@@ -3,6 +3,7 @@
   #include <sstream>
   #include <unistd.h>
   #include <filesystem>
+  #include <sys/wait.h>
   using namespace std;
 
   // s: string to be split; del: delimiter char
