@@ -301,9 +301,12 @@ int main()
       // Bring args outside; easier to debug
       vector<char *> execArgs;
       string redirect_to_file;
+      string redirect_type;
+
       execArgs.push_back(const_cast<char *>(command.c_str()));
       for (size_t i = 0; i < arguments.size(); ++i) {
-        if (arguments[i] == ">" || arguments[i] == "1>") {
+        if (arguments[i] == ">" || arguments[i] == "1>" || arguments[i] == "2>") {
+            redirect_type = arguments[i];
             // Handle the redirection
             if (i + 1 < arguments.size()) {
                 redirect_to_file = arguments[i + 1];  // Set the file to redirect to
@@ -316,8 +319,9 @@ int main()
       execArgs.push_back(nullptr);
       // Save the original stdout file descriptor
       int saved_stdout = dup(STDOUT_FILENO);
-      if (saved_stdout == -1) {
-          perror("Unable to save stdout");
+      int saved_stderr = dup(STDERR_FILENO);
+      if (saved_stdout == -1 || saved_stderr == -1) {
+          perror("Unable to save stdout or stderr");
           return 1;
       }
       // Execute the command with execvp
@@ -328,11 +332,19 @@ int main()
           perror("Unable to open file");
           return 1;
         }
-        // redirect stdout
-        if (dup2(fd, STDOUT_FILENO) == -1) {
-          perror("Unable to copy file descriptor");
-          return 1;
+        // redirect stdout or stderr
+        if (redirect_type == "1>" || redirect_type == ">") {
+          if (dup2(fd, STDOUT_FILENO) == -1) {
+            perror("Unable to copy file descriptor stdout");
+            return 1;
+          }
+        } else if (redirect_type == "2>") {
+          if (dup2(fd, STDERR_FILENO) == -1) {
+            perror("Unable to copy file descriptor stderr");
+            return 1;
+          }
         }
+        
         close(fd);
       }
       
@@ -355,11 +367,12 @@ int main()
       {
         // In the parent process, wait for the child to finish
         waitpid(pid, nullptr, 0);
-        if (dup2(saved_stdout, STDOUT_FILENO) == -1) {
-          perror("Unable to restore stdout");
+        if (dup2(saved_stdout, STDOUT_FILENO) == -1 || dup2(saved_stderr, STDERR_FILENO) == -1) {
+          perror("Unable to restore stdout or stderr");
           return 1;
         }
         close(saved_stdout);
+        close(saved_stderr);
       
       }
       continue;
