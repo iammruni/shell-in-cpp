@@ -4,6 +4,7 @@
   #include <unistd.h>
   #include <filesystem>
   #include <sys/wait.h>
+  #include <ctype.h>
   using namespace std;
 
   // s: string to be split; del: delimiter char
@@ -56,8 +57,17 @@
         // If inside double quotes, handle escape sequences
         else if (insideDoubleQuote) {
             if (currentChar == '\\') {
+                char nxtchar = input[i+1];
+                char prvchar = input[i-1];
                 // If a backslash, escape the next character (including quotes and backslashes)
-                escapeNextChar = true;
+                bool is_digit = isdigit(nxtchar) || isdigit(prvchar);
+                bool is_single_quote = (nxtchar == '\'' && prvchar == '\'');
+                
+                if (is_digit || nxtchar == 'n' || is_single_quote) {
+                  currentArg.push_back(currentChar);
+                } else {
+                  escapeNextChar = true;
+                }
             } else {
                 currentArg.push_back(currentChar);
             }
