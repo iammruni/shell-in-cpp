@@ -241,8 +241,6 @@
             execArgs.push_back(const_cast<char*>(arg.c_str()));
         }
         execArgs.push_back(nullptr);
-        // Remove the first element
-        execArgs.erase(execArgs.begin());
         // Fork to create a new process
         pid_t pid = fork();
         if (pid == -1) {
