@@ -221,14 +221,13 @@
         continue;
       }
       // cmd: executable file
-      command = parseforCMD(input);
+      if (input.starts_with("'") || input.starts_with("\"")) {
+        command = parseforCMD(input);
+      }
       string checkpaths = findExecutable(command, PATH_DIRS);
-
       if (!checkpaths.empty()) {
-          // Properly format the command with arguments, preserving quotes
-          string fullCommand = "'" + checkpaths + "' " + arguments[1];
-          system(fullCommand.c_str());
-          continue;
+        system(("'" + command + "'" + " " + arguments[1]).c_str());
+        continue;
       }
 
       cout << input << ": command not found" << endl;
