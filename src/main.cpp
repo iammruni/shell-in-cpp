@@ -93,12 +93,14 @@
     if (startswithquote == '\"' || startswithquote == '\'') {
       for (size_t i = 0; i < input.size(); i++) {
         char currentChar = input[i];
-        if (currentChar != startswithquote){
+        if (currentChar != startswithquote) {
           cmd.push_back(currentChar);
-        } else {
+        }
+        if (currentChar == startswithquote && i != 0) {
           return cmd;
         }
       }
+      return cmd;
     }
     return input;
   }
@@ -226,7 +228,7 @@
         continue;
       }
       // cmd: executable file
-      if (command.starts_with("'") || command.starts_with("\"")) {
+      if (input.starts_with("'") || input.starts_with("\"")) {
         command = parseforCMD(input);
       }
       string checkpaths = findExecutable(command, PATH_DIRS);
