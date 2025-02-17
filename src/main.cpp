@@ -87,21 +87,43 @@
     return arguments;
 }
 
-  string parseforCMD(string& input) {
-    char startswithquote = input.at(0);
-    string cmd = "";
-    if (startswithquote == '\"' || startswithquote == '\'') {
-      for (size_t i = 0; i < input.size(); i++) {
-        char currentChar = input[i];
-        if (currentChar != startswithquote){
+string parseforCMD(string& input) {
+  char startswithquote = input.at(0);
+  string cmd = "";
+  bool escapeNextChar = false;  // Flag to handle backslashes
+
+  if (startswithquote == '\"' || startswithquote == '\'') {
+      for (size_t i = 1; i < input.size(); ++i) {
+          char currentChar = input[i];
+
+          // Handle backslashes (escape next character)
+          if (escapeNextChar) {
+              cmd.push_back(currentChar);
+              escapeNextChar = false;
+              continue;
+          }
+
+          // Handle backslash escaping
+          if (currentChar == '\\') {
+              escapeNextChar = true;
+              continue;
+          }
+
+          // If we encounter the closing quote, stop parsing
+          if (currentChar == startswithquote) {
+              return cmd;
+          }
+
+          // Otherwise, just add the character to the command
           cmd.push_back(currentChar);
-        } else {
-          return cmd;
-        }
       }
-    }
-    return input;
+      // In case we don't find the closing quote, return the cmd so far
+      return cmd;
   }
+  
+  // If no quotes are found, return the input as the command
+  return input;
+}
 
   // F_OK only checks for existence of file.
   // access() returns 0 for file exists and -1 otherwise
@@ -231,7 +253,7 @@
       }
       string checkpaths = findExecutable(command, PATH_DIRS);
       if (!checkpaths.empty()) {
-        system(("'" + command + "'" + " " + arguments[1]).c_str());
+        system(("'" + command + "'" + " " + arguments[0]).c_str());
         continue;
       }
 
