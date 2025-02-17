@@ -6,6 +6,8 @@
 #include <sys/wait.h>
 #include <ctype.h>
 #include <fcntl.h>
+#include <set>
+#include <unordered_map>
 using namespace std;
 
 // s: string to be split; del: delimiter char
@@ -302,10 +304,19 @@ int main()
       vector<char *> execArgs;
       string redirect_to_file;
       string redirect_type;
+      const unordered_map<string, int> redirectionFlags = {
+        {">", STDOUT_FILENO},   // Overwrite stdout
+        {"1>", STDOUT_FILENO},  // Overwrite stdout
+        {"2>", STDERR_FILENO},  // Overwrite stderr
+        {">>", STDOUT_FILENO},  // Append to stdout
+        {"1>>", STDOUT_FILENO}, // Append to stdout
+        {"2>>", STDERR_FILENO}  // Append to stderr
+      };
+      const set<string> redirectionOperators ={">", "1>", "2>", ">>", "1>>", "2>>"};
 
       execArgs.push_back(const_cast<char *>(command.c_str()));
       for (size_t i = 0; i < arguments.size(); ++i) {
-        if (arguments[i] == ">" || arguments[i] == "1>" || arguments[i] == "2>") {
+        if (redirectionOperators.count(arguments[i]) > 0) {
             redirect_type = arguments[i];
             // Handle the redirection
             if (i + 1 < arguments.size()) {
@@ -327,20 +338,24 @@ int main()
       // Execute the command with execvp
       if (!redirect_to_file.empty()) {
         // open file descriptor
-        int fd = open(redirect_to_file.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
+        int flags = O_WRONLY | O_CREAT;
+        // if append or overwrite
+        if (redirect_type == ">" || redirect_type == "1>" || redirect_type == "2>") {
+          flags |= O_TRUNC;
+        } else {
+          flags |= O_APPEND;
+        }
+        int fd = open(redirect_to_file.c_str(), flags, 0644);
         if (fd == -1) {
           perror("Unable to open file");
           return 1;
         }
         // redirect stdout or stderr
-        if (redirect_type == "1>" || redirect_type == ">") {
-          if (dup2(fd, STDOUT_FILENO) == -1) {
-            perror("Unable to copy file descriptor stdout");
-            return 1;
-          }
-        } else if (redirect_type == "2>") {
-          if (dup2(fd, STDERR_FILENO) == -1) {
-            perror("Unable to copy file descriptor stderr");
+        if (redirectionFlags.count(redirect_type) > 0) {
+          int target_fd = redirectionFlags.at(redirect_type);
+          if (dup2(fd, target_fd) == -1) {
+            perror("Unable to copy file descriptor");
+            close(fd);
             return 1;
           }
         }
